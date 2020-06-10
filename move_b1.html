@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <style>
+        * {
+            overflow: hidden;
+        }
+    </style>
+    <script>
+        var pWidth = 100,
+            pHeight = 140;
+
+        var leftPressed = false,
+            rightPressed = false,
+            upPressed = false,
+            downPressed = false,
+            spacePressed = false,
+            pausePressed = false;
+
+        var Timer = 0;
+
+        var createTimer = 0,
+            asteroidDelay = 0,
+            asteroidSpeed = 0,
+            asteroidSize = 0,
+            asteroidFactor = 0;
+
+        var isShooting = false,
+            shootTime = 0,
+            shootDelay = 2.5,
+            shootHole = false;
+
+        var objectNum = 0;
+
+        var camera = {
+            X: 0,
+            Y: 0
+        };
+
+        var score = 0;
+        var gameEnd = false;
+
+        document.addEventListener("keydown", keyDownHandler, false);
+        document.addEventListener("keyup", keyUpHandler, false);
+
+        function keyDownHandler(e) {
+            if (e.keyCode == 68) { //우
+                rightPressed = true;
+            }
+            if (e.keyCode == 65) { //좌
+                leftPressed = true;
+            }
+            if (e.keyCode == 87) { //상
+                upPressed = true;
+            }
+            if (e.keyCode == 83) { //하
+                downPressed = true;
+            }
+            if (e.keyCode == 32) { //스페이스바
+                spacePressed = true;
+            }
+            if (e.keyCode == 27) {
+                if (!pausePressed) {
+                    if (gameEnd) {
+                        document.getElementById("Player").HP = 5;
+                        player.X = screen.availWidth / 2 - pWidth / 2;
+                        player.Y = screen.availHeight / 2 - pHeight / 2;
+                        player.mx = player.X;
+                        player.my = player.Y;
+                        scoreBoard.style.top = "0px";
+                        scoreBoard.style.left = screen.availWidth / 2 - parseInt(scoreBoard.style.fontSize) / 2 * 3.5 + "px";
+                        score = 0;
+                        var object = document.getElementsByTagName("img"); //무브먼트 처리
+                        for (var i = objectNum - 1; i > 0; i--) {
+                            document.body.removeChild(object[i]);
+                            objectNum--;
+                        }
+                        gameEndText.style.display = "none";
+                        playerHP.style.display = "block";
+                        gameEnd = false;
+                    }
+                    menu.menuToggle = !menu.menuToggle;
+                    for (var i = 0; i < 3; i++) {
+                        document.querySelectorAll("menu div")[i].menuToggle = false;
+                    }
+                }
+                pausePressed = true;
+            }
+        }
+
+        function keyUpHandler(e) {
+            if (e.keyCode == 68) {
+                rightPressed = false;
+            }
+            if (e.keyCode == 65) {
+                leftPressed = false;
+            }
+            if (e.keyCode == 87) {
+                upPressed = false;
+            }
+            if (e.keyCode == 83) {
+                downPressed = false;
+            }
+            if (e.keyCode == 32) {
+                spacePressed = false;
+            }
+            if (e.keyCode == 27) {
+                pausePressed = false;
+            }
+        }
+
+        var BGM = new Audio("N4.mp3");
+        BGM.loop = true;
+        document.addEventListener('click', musicPlay);
+
+        function musicPlay() {
+            BGM.volume = document.getElementById("BGvolume").value;
+            BGM.play();
+            document.removeEventListener('click', musicPlay);
+        }
+    </script>
+</head>
+
+<body oncontextmenu="return false" ondragstart="return false" onselectstart="return false" style="background-image:url('image8.jpg'); background-size: 600px ;background-repeat: repeat;">
+
+    <div id="menu" style="overflow:hidden; position: absolute; background-color: rgba(255, 255, 255, 40);">
+        <ul>
+            <li>Stage</li>
+            <li>Setting</li>
+            <li>Credit</li>
+        </ul>
+    </div>
+    <menu>
+        <div id="Stage" style="padding-right: 30px;text-align: right;overflow: hidden; position: absolute;">
+            <h1>Select Stage</h1>
+            <h2>asteroid create delay</h2>
+            <input id="asteroidDelay" type="number" max="5" min="1" value="3" oninput="asteroidDelay = this.value;">
+            <h2>asteroid move speed</h2>
+            <input id="asteroidSpeed" type="number" max="10" min="1" value="3" oninput="asteroidSpeed=this.value;">
+            <h2>asteroid speed factor</h2>
+            <input id="asteroidFactor" type="number" max="5" min="1" value="3" oninput="asteroidFactor=this.value;">
+            <h2>asteroid size</h2>
+            <input id="asteroidSize" type="number" max="3" min="1" value="2" oninput="asteroidSize=this.value;">
+        </div>
+        <div id="Setting" style="padding-right: 30px;text-align: right;overflow: hidden; position: absolute;">
+            <h1>Background music</h1>
+            <input id="BGvolume" type="range" max="1.0" min="0.0" step="0.1" value="0.0" oninput="BGM.volume=parseFloat(this.value);">
+        </div>
+        <div id="Credit" style="padding-right: 30px;text-align: right;overflow: hidden; position: absolute;">
+            <h1>Primary<br> Programmer</h1>
+            <p>10513 모현성</p>
+            <h1>Secondary<br> Programmer</h1>
+            <p>10521 장유덕</p>
+            <h1>Music</h1>
+            <p>Neutron Stars – Soundtrack (2019)</p>
+        </div>
+    </menu>
+
+    <img id="Player" src="player.png" style="position: absolute;">
+    <span id="gameEnd" style="display: none;position: absolute; font-size: 100px;top:0px;right:0px;color:red;background-color: rgba(255, 255, 255, 0.4);">Game Over</span>
+    <span id="scoreBoard" style="position: absolute; font-size: 50px;top:0px;right:0px;color:white;"></span>
+    <span id="playerHP" style="position: absolute; font-size: 50px;top:50px;right:0px;color:white;"></span>
+    <!-- <span id="obsticle" style="position: absolute; bottom:0px;right:0px;color:red;">This is 191201b version</span> -->
+    <script>
+        asteroidDelay = document.getElementById("asteroidDelay").value;
+        asteroidSpeed = document.getElementById("asteroidSpeed").value;
+        asteroidFactor = document.getElementById("asteroidFactor").value;
+        asteroidSize = document.getElementById("asteroidSize").value;
+
+        var player = document.getElementById("Player");
+        player.style.width = pWidth + "px";
+        player.style.height = pHeight + "px";
+        player.X = screen.availWidth / 2 - pWidth / 2;
+        player.Y = screen.availHeight / 2 - pHeight / 2;
+        player.Z = 0;
+        player.mx = player.X;
+        player.my = player.Y;
+        player.style.top = player.X + "px";
+        player.style.left = player.Y + "px";
+        player.style.zIndex = 2;
+        player.HP = 5;
+
+        var scoreBoard = document.getElementById("scoreBoard");
+        scoreBoard.style.left = screen.availWidth / 2 - parseInt(scoreBoard.style.fontSize) / 2 * 3.5 + "px";
+        scoreBoard.style.zIndex = 4;
+        var scorempty = new String;
+        var playerHP = document.getElementById("playerHP");
+        playerHP.style.zIndex = 6;
+        var gameEndText = document.getElementById("gameEnd");
+        gameEndText.style.left = screen.availWidth - screen.availWidth / 2 + "px";
+        gameEndText.style.top = screen.availHeight / 2 + "px";
+
+        var menu = document.getElementById("menu");
+        menu.style.zIndex = 6;
+        menu.style.minWidth = screen.availWidth / 3 + "px";
+        menu.style.minHeight = screen.availHeight + "px";
+        menu.X = 0;
+        menu.Y = 0;
+        menu.mx = 0;
+        menu.my = 0;
+        menu.style.top = menu.X + "px";
+        menu.style.left = menu.Y + "px";
+        menu.menuToggle = true;
+        menu.style.backgroundColor = "rgba(255, 255, 255, 0.8)";
+
+        var menuDisplay = document.querySelectorAll("menu div");
+        for (var i = 0; i < 3; i++) {
+            menuDisplay[i].style.display = "none";
+            menuDisplay[i].style.backgroundColor = "white";
+            menuDisplay[i].X = 0;
+            menuDisplay[i].Y = 0;
+            menuDisplay[i].mx = -500;
+            menuDisplay[i].my = 0;
+            menuDisplay[i].style.top = menuDisplay[i].X + "px";
+            menuDisplay[i].style.left = menuDisplay[i].Y + "px";
+            menuDisplay[i].style.top = "0px";
+            menuDisplay[i].style.left = "0px";
+            menuDisplay[i].style.minWidth = screen.availWidth / 3 + "px";
+            menuDisplay[i].style.minHeight = screen.availHeight + "px";
+            menuDisplay[i].style.zIndex = 5;
+            menuDisplay[i].style.backgroundColor = "rgba(255, 255, 255, 0.8)"
+        }
+
+        var menuToggle = menu.menuToggle;
+
+        menu.addEventListener("mousedown", function() {
+            if (!menu.menuToggle) {
+                menu.menuToggle = !menu.menuToggle;
+                if (menuToggle)
+                    for (var i = 0; i < 3; i++) {
+                        menuDisplay[i].menuToggle = false;
+                    }
+            }
+        }); //메뉴 토글 이벤트
+
+        var menuElements = document.getElementsByTagName("li");
+        for (var i = 0; i < 3; i++) { //메뉴 리스트 
+            menuElements[i].style.fontSize = "100px";
+            menuElements[i].addEventListener("mousedown", eleDown);
+            menuElements[i].addEventListener("mouseup", eleUp);
+            menuElements[i].addEventListener("mouseover", eleOver);
+            menuElements[i].addEventListener("mouseleave", eleLeave);
+            menuElements[i].style.cursor = "pointer";
+        }
+
+        function eleDown() {
+            if (menu.menuToggle) {
+                this.style.backgroundColor = "cyan";
+                for (var i = 0; i < 3; i++) {
+                    document.querySelectorAll("menu div")[i].menuToggle = false;
+                }
+                document.getElementById(this.innerText).menuToggle = true;
+            }
+        }
+
+        function eleUp() {
+            this.style.backgroundColor = "inherit";
+        }
+
+        function eleOver() {
+            if (menu.menuToggle) {
+                this.style.filter = "invert(100%)";
+            }
+        }
+
+        function eleLeave() {
+            this.style.filter = "none";
+        }
+
+        const perfectFrameTime = 1000 / 60;
+        let deltaTime = 0;
+        let lastTimestamp = 0;
+
+        function update(timestamp) {
+            move();
+            deltaTime = (timestamp - lastTimestamp) / perfectFrameTime;
+            lastTimestamp = timestamp;
+        }
+
+        requestAnimationFrame(update); //start request loop
+
+        function move() // 1
+        {
+            // Player.Z = Math.cos(Timer / 25) * 20 + 40; //Idle 에니메이션
+            if (!menu.menuToggle) { //움직임 제어
+                if (leftPressed) {
+                    Player.mx -= 10;
+                }
+                if (upPressed) {
+                    Player.my -= 10;
+                }
+                if (rightPressed) {
+                    Player.mx += 10;
+                }
+                if (downPressed) {
+                    Player.my += 10;
+                }
+                if (spacePressed) {
+                    shoot();
+                }
+
+                if (player.X < 0) {
+                    player.mx = 0;
+                    player.X = 0;
+                }
+                if (player.X + pWidth > screen.availWidth) {
+                    player.mx = screen.availWidth - pWidth;
+                    player.X = screen.availWidth - pWidth;
+                }
+                if (player.Y < 0) {
+                    player.my = 0;
+                    player.Y = 0;
+                }
+                if (player.Y + pHeight > screen.availHeight) {
+                    player.my = screen.availHeight - pHeight;
+                    player.Y = screen.availHeight - pHeight;
+                }
+
+                Player.X -= (Player.X - Player.mx) * 0.05 * deltaTime; //에니메이션 제어
+                Player.Y -= (Player.Y - Player.my) * 0.05 * deltaTime;
+                player.style.top = Player.Y - Player.Z + "px";
+                player.style.left = Player.X + "px";
+                // player.style.filter ="drop-shadow(0px" + (Player.Z - 10) +"px" + (Player.Z / 2 - 5) +"px gray)";
+
+                Timer += deltaTime;
+                console.log(Timer);
+            }
+            stage();
+        }
+
+        function shoot() { // 발사
+
+            if (!isShooting) {
+                createBullet();
+                var laser = new Audio();
+                laser.src = "Future Weapons 2 - Source - Laser Source_1-[AudioTrimmer.com].mp3";
+                laser.volume = 0.2;
+                laser.play();
+                Player.my += 25;
+                player.mx += Math.floor(Math.random() * 40) - 20;
+                isShooting = true;
+                shootTimer = Timer;
+            }
+            if (((Timer - shootTimer) > shootDelay)) {
+                isShooting = false;
+            }
+
+        }
+
+        function stage() // 2
+        {
+            if (!gameEnd) {
+                scorempty = new String(score + 10000000);
+                scoreBoard.innerText = scorempty.substr(1);
+                playerHP.innerText = player.HP;
+                playerHP.style.left = player.offsetLeft + player.offsetWidth + "px";
+                playerHP.style.top = player.offsetTop + player.offsetHeight / 2 + "px";
+                playerHP.style.opacity = 100 - parseInt(playerHP.innerText) * 10 + "%";
+                gameEnd = player.HP <= 0 ? true : false;
+                if (gameEnd) {
+                    var deathBGM = new Audio;
+                    deathBGM.src = "playerdeath.mp3";
+                    deathBGM.play();
+                    gameEndText.style.display = "block";
+                    gameEndText.style.zIndex = 6;
+                    scoreBoard.style.top = gameEndText.offsetTop + 100 + "px";
+                    scoreBoard.style.left = gameEndText.offsetLeft + "px";
+                    playerHP.style.display = "none";
+
+                    player.HP = 5;
+
+                    menu.menuToggle = true;
+                }
+                if ((Timer - createTimer) > 20 + asteroidDelay * 5) {
+                    createTimer = Timer;
+                    createAsteroid();
+                }
+            }
+            menuMove();
+        }
+
+        function createAsteroid() { // 소행성 생성
+            var asteroid = document.createElement("img");
+            asteroid.id = "asteroid";
+            asteroid.src = "a.png"
+            asteroid.style = "position: absolute;";
+            asteroid.dx = Math.floor(Math.random() * screen.availWidth);
+            asteroid.style.left = asteroid.dx + "px";
+            asteroid.style.width = pWidth + 50 * Math.floor(Math.random() * asteroidSize * 6) / 10 + "px";
+            asteroid.style.height = asteroid.style.width + "px";
+            asteroid.style.top = 0 - parseInt(asteroid.style.width) + "px";
+            asteroid.style.zIndex = 2;
+            asteroid.HP = asteroidSize * 5;
+            asteroid.dspeed = Math.floor(Math.random() * asteroidFactor) + 1;
+            asteroid.hitTimer = 0;
+            asteroid.createTimer = Timer;
+
+            document.body.appendChild(asteroid);
+            objectNum++;
+        }
+
+        function menuMove() // 3
+        {
+            menuToggle = (menuDisplay[0].menuToggle || menuDisplay[1].menuToggle || menuDisplay[2].menuToggle);
+
+            for (var i = 0; i < 3; i++) {
+                if (menuDisplay[i].menuToggle) {
+                    menuDisplay[i].mx = menu.offsetWidth;
+                } else {
+                    menuDisplay[i].mx = -screen.availWidth / 2;
+                }
+                if (menuDisplay[i].X <= -screen.availWidth / 2 + 1) {
+                    menuDisplay[i].style.display = "none";
+                } else {
+                    menuDisplay[i].style.display = "block";
+                }
+
+                menuDisplay[i].X -= (menuDisplay[i].X - menuDisplay[i].mx) * 0.1 * deltaTime; //에니메이션 제어
+                menuDisplay[i].Y -= (menuDisplay[i].Y - menuDisplay[i].my) * 0.1 * deltaTime;
+                menuDisplay[i].style.left = menuDisplay[i].X + "px";
+                menuDisplay[i].style.top = menuDisplay[i].Y + "px";
+                menuDisplay[i].style.filter = "invert(" + (500 + menuDisplay[i].X) / 10 + "%)";
+            }
+
+            if (menu.menuToggle) {
+                menu.mx = 0;
+            } else {
+                menu.mx = -screen.availWidth / 2;
+            }
+
+            menu.X -= (menu.X - menu.mx) * 0.1 * deltaTime; //에니메이션 제어
+            menu.Y -= (menu.Y - menu.my) * 0.1 * deltaTime;
+            menu.style.left = menu.X + "px";
+            menu.style.top = menu.Y + "px";
+            menu.style.filter = "invert(" + (menu.X) / -500 + ")";
+
+            updateMoveObject();
+        }
+
+        function updateMoveObject() // 4
+        {
+            if (!menu.menuToggle) {
+                for (var i = 0; i < document.querySelectorAll("#asteroid").length; i++) { //플레이어 : 소행성 충돌 처리
+                    if (IsCollision(document.querySelectorAll("#asteroid")[i], player)) {
+                        var damageBGM = new Audio;
+                        damageBGM.src = "playerdamage.mp3";
+                        damageBGM.play();
+                        document.body.removeChild(document.querySelectorAll("#asteroid")[i]);
+                        objectNum--;
+                        player.HP -= 1;
+                    }
+                }
+                for (var j = 0; j < document.querySelectorAll("#asteroid").length; j++) //총알 : 소행성 충돌 처리
+                    for (var i = 0; i < document.querySelectorAll("#bullet").length; i++) {
+                    if (document.querySelectorAll("#bullet")[i].offsetLeft != undefined && document.querySelectorAll("#asteroid")[j] != undefined)
+                        if (IsCollision(document.querySelectorAll("#bullet")[i], document.querySelectorAll("#asteroid")[j])) {
+                            if (document.querySelectorAll("#asteroid")[j].HP <= 0) {
+                                var breakBGM = new Audio;
+                                breakBGM.src = "stonebreak.mp3";
+                                breakBGM.play();
+                                score += Math.round(document.querySelectorAll("#asteroid")[j].offsetWidth / pWidth * 1000);
+                                document.body.removeChild(document.querySelectorAll("#asteroid")[j]);
+                                objectNum--;
+                            } else {
+                                var breakBGM = new Audio;
+                                breakBGM.src = "stonebreak.mp3";
+                                breakBGM.play();
+                                document.querySelectorAll("#asteroid")[j].HP -= 1;
+                                document.querySelectorAll("#asteroid")[j].src = "b.png";
+                                document.querySelectorAll("#asteroid")[j].hitTimer = Timer;
+                            }
+                            document.body.removeChild(document.querySelectorAll("#bullet")[i]);
+                            objectNum--;
+                        }
+                }
+
+                var object = document.getElementsByTagName("img"); //무브먼트 처리
+                for (var i = 1; i < objectNum + 1; i++) {
+                    if (object[i].id == "bullet") {
+                        if ((object[i].offsetTop + 140) >= 0) {
+                            object[i].style.top = (object[i].offsetTop - 20 * deltaTime) + "px";
+                        } else {
+                            document.body.removeChild(object[i]);
+                            objectNum--;
+                        }
+                    } else if (object[i].id == "asteroid") {
+                        if (Timer - object[i].hitTimer > 2)
+                            object[i].src = "a.png";
+                        if (object[i].offsetTop <= screen.availHeight) {
+                            object[i].style.top = (object[i].offsetTop + object[i].dspeed * asteroidSpeed * deltaTime) + "px";
+                            object[i].style.left = object[i].dx - player.X + screen.availWidth / 2 + "px";
+                        } else {
+                            document.body.removeChild(object[i]);
+                            objectNum--;
+                        }
+                    }
+                }
+            }
+            background();
+        }
+
+        function IsCollision(enemy, player) { //충돌 체크
+            return enemy.offsetLeft < player.offsetLeft + player.offsetWidth &&
+                enemy.offsetLeft + enemy.offsetWidth > player.offsetLeft &&
+                enemy.offsetTop < player.offsetTop + player.offsetHeight &&
+                enemy.offsetTop + enemy.offsetHeight > player.offsetTop;
+        }
+
+        function background() // 5
+        {
+            if (!menu.menuToggle) {
+                camera.Y += 10;
+                document.getElementsByTagName("body")[0].style.backgroundPosition = (player.X) * -1 + "px " + ((player.Y) * -1 + camera.Y) + "px";
+            }
+            requestAnimationFrame(update); //request
+        }
+
+        function createBullet() { // 총알 생성
+            var bullet = document.createElement("img");
+            bullet.id = "bullet";
+            bullet.src = "splashBullet.png";
+            bullet.style = "position: absolute;";
+            bullet.style.top = (player.offsetTop + 60) + "px";
+            shootHole = !shootHole;
+            bullet.style.left = (player.offsetLeft + 80 * shootHole + Math.floor(Math.random() * 5)) + "px";
+            bullet.style.width = pWidth / 8 + "px";
+            bullet.style.height = pHeight / 8 + "px";
+            bullet.style.zIndex = 1;
+
+            document.body.appendChild(bullet);
+            objectNum++;
+        }
+    </script>
+</body>
+
+</html>
