@@ -40,6 +40,28 @@
             Y: 0
         };
 
+        function pauseMenu() {
+            if (gameEnd) {
+                document.getElementById("Player").HP = 5;
+                player.X = screen.availWidth / 2 - pWidth / 2;
+                player.Y = screen.availHeight / 2 - pHeight / 2;
+                player.mx = player.X;
+                player.my = player.Y;
+                score = 0;
+                var object = document.getElementsByTagName("img"); //무브먼트 처리
+                for (var i = objectNum - 1; i > 0; i--) {
+                    document.body.removeChild(object[i]);
+                    objectNum--;
+                }
+                gameEndText.style.display = "none";
+                playerHP.style.display = "block";
+                gameEnd = false;
+            }
+            menu.menuToggle = !menu.menuToggle;
+            for (var i = 0; i < 3; i++) {
+                document.querySelectorAll("menu div")[i].menuToggle = false;
+            }
+        }
         var score = 0;
         var gameEnd = false;
 
@@ -63,30 +85,8 @@
                 spacePressed = true;
             }
             if (e.keyCode == 27) {
-                if (!pausePressed) {
-                    if (gameEnd) {
-                        document.getElementById("Player").HP = 5;
-                        player.X = screen.availWidth / 2 - pWidth / 2;
-                        player.Y = screen.availHeight / 2 - pHeight / 2;
-                        player.mx = player.X;
-                        player.my = player.Y;
-                        scoreBoard.style.top = "0px";
-                        scoreBoard.style.left = screen.availWidth / 2 - parseInt(scoreBoard.style.fontSize) / 2 * 3.5 + "px";
-                        score = 0;
-                        var object = document.getElementsByTagName("img"); //무브먼트 처리
-                        for (var i = objectNum - 1; i > 0; i--) {
-                            document.body.removeChild(object[i]);
-                            objectNum--;
-                        }
-                        gameEndText.style.display = "none";
-                        playerHP.style.display = "block";
-                        gameEnd = false;
-                    }
-                    menu.menuToggle = !menu.menuToggle;
-                    for (var i = 0; i < 3; i++) {
-                        document.querySelectorAll("menu div")[i].menuToggle = false;
-                    }
-                }
+                if (!pausePressed)
+                    pauseMenu();
                 pausePressed = true;
             }
         }
@@ -115,6 +115,7 @@
         var BGM = new Audio("N4.mp3");
         BGM.loop = true;
         document.addEventListener('click', musicPlay);
+        document.addEventListener('keydown', musicPlay);
 
         function musicPlay() {
             BGM.volume = document.getElementById("BGvolume").value;
@@ -147,21 +148,21 @@
         </div>
         <div id="Setting" style="padding-right: 30px;text-align: right;overflow: hidden; position: absolute;">
             <h1>Background music</h1>
-            <input id="BGvolume" type="range" max="1.0" min="0.0" step="0.1" value="0.0" oninput="BGM.volume=parseFloat(this.value);">
+            <input id="BGvolume" type="range" max="1.0" min="0.0" step="0.1" value="0.2" oninput="BGM.volume=parseFloat(this.value);">
         </div>
         <div id="Credit" style="padding-right: 30px;text-align: right;overflow: hidden; position: absolute;">
-            <h1>Primary<br> Programmer</h1>
+            <h1>Major<br> Programmer</h1>
             <p>10513 모현성</p>
-            <h1>Secondary<br> Programmer</h1>
+            <h1>Assist<br> Programmer</h1>
             <p>10521 장유덕</p>
             <h1>Music</h1>
-            <p>Neutron Stars – Soundtrack (2019)</p>
+            <p>Neutron Stars – Soundtrack (2019) by Epic Mountain</p>
         </div>
     </menu>
 
     <img id="Player" src="player.png" style="position: absolute;">
     <span id="gameEnd" style="display: none;position: absolute; font-size: 100px;top:0px;right:0px;color:red;background-color: rgba(255, 255, 255, 0.4);">Game Over</span>
-    <span id="scoreBoard" style="position: absolute; font-size: 50px;top:0px;right:0px;color:white;"></span>
+    <div id="scoreBoard" style="position: absolute; text-align: center; left:50%; margin-left:-200px; width:400px; height:400px;  font-size: 50px;color:white;"></div>
     <span id="playerHP" style="position: absolute; font-size: 50px;top:50px;right:0px;color:white;"></span>
     <!-- <span id="obsticle" style="position: absolute; bottom:0px;right:0px;color:red;">This is 191201b version</span> -->
     <script>
@@ -170,28 +171,14 @@
         asteroidFactor = document.getElementById("asteroidFactor").value;
         asteroidSize = document.getElementById("asteroidSize").value;
 
-        var player = document.getElementById("Player");
-        player.style.width = pWidth + "px";
-        player.style.height = pHeight + "px";
-        player.X = screen.availWidth / 2 - pWidth / 2;
-        player.Y = screen.availHeight / 2 - pHeight / 2;
-        player.Z = 0;
-        player.mx = player.X;
-        player.my = player.Y;
-        player.style.top = player.X + "px";
-        player.style.left = player.Y + "px";
-        player.style.zIndex = 2;
-        player.HP = 5;
-
         var scoreBoard = document.getElementById("scoreBoard");
-        scoreBoard.style.left = screen.availWidth / 2 - parseInt(scoreBoard.style.fontSize) / 2 * 3.5 + "px";
         scoreBoard.style.zIndex = 4;
-        var scorempty = new String;
         var playerHP = document.getElementById("playerHP");
         playerHP.style.zIndex = 6;
         var gameEndText = document.getElementById("gameEnd");
         gameEndText.style.left = screen.availWidth - screen.availWidth / 2 + "px";
         gameEndText.style.top = screen.availHeight / 2 + "px";
+        gameEndText.style.zIndex = 7;
 
         var menu = document.getElementById("menu");
         menu.style.zIndex = 6;
@@ -208,7 +195,7 @@
 
         var menuDisplay = document.querySelectorAll("menu div");
         for (var i = 0; i < 3; i++) {
-            menuDisplay[i].style.display = "none";
+            menuDisplay[i].style.display = "block";
             menuDisplay[i].style.backgroundColor = "white";
             menuDisplay[i].X = 0;
             menuDisplay[i].Y = 0;
@@ -216,20 +203,16 @@
             menuDisplay[i].my = 0;
             menuDisplay[i].style.top = menuDisplay[i].X + "px";
             menuDisplay[i].style.left = menuDisplay[i].Y + "px";
-            menuDisplay[i].style.top = "0px";
-            menuDisplay[i].style.left = "0px";
             menuDisplay[i].style.minWidth = screen.availWidth / 3 + "px";
             menuDisplay[i].style.minHeight = screen.availHeight + "px";
             menuDisplay[i].style.zIndex = 5;
-            menuDisplay[i].style.backgroundColor = "rgba(255, 255, 255, 0.8)"
+            menuDisplay[i].filter = "opacity: 0;";
         }
-
-        var menuToggle = menu.menuToggle;
 
         menu.addEventListener("mousedown", function() {
             if (!menu.menuToggle) {
                 menu.menuToggle = !menu.menuToggle;
-                if (menuToggle)
+                if (menu.menuToggle)
                     for (var i = 0; i < 3; i++) {
                         menuDisplay[i].menuToggle = false;
                     }
@@ -248,27 +231,40 @@
 
         function eleDown() {
             if (menu.menuToggle) {
-                this.style.backgroundColor = "cyan";
                 for (var i = 0; i < 3; i++) {
-                    document.querySelectorAll("menu div")[i].menuToggle = false;
+                    menuDisplay[i].menuToggle = false;
                 }
                 document.getElementById(this.innerText).menuToggle = true;
+                this.style.backgroundColor = "black";
             }
         }
 
         function eleUp() {
-            this.style.backgroundColor = "inherit";
+            this.style.backgroundColor = "red";
         }
 
         function eleOver() {
-            if (menu.menuToggle) {
-                this.style.filter = "invert(100%)";
-            }
+            this.style.backgroundColor = "red";
+            this.style.color = "white"
         }
 
         function eleLeave() {
-            this.style.filter = "none";
+            this.style.backgroundColor = "rgba(0,0,0,0)";
+            this.style.color = "black"
         }
+
+        var player = document.getElementById("Player");
+        player.style.width = pWidth + "px";
+        player.style.height = pHeight + "px";
+        player.X = screen.availWidth / 2 - pWidth / 2;
+        player.Y = screen.availHeight / 2 - pHeight / 2;
+        player.Z = 0;
+        player.mx = player.X;
+        player.my = player.Y;
+        player.style.top = player.X + "px";
+        player.style.left = player.Y + "px";
+        player.style.zIndex = 2;
+        player.HP = 5;
 
         const perfectFrameTime = 1000 / 60;
         let deltaTime = 0;
@@ -353,8 +349,7 @@
         function stage() // 2
         {
             if (!gameEnd) {
-                scorempty = new String(score + 10000000);
-                scoreBoard.innerText = scorempty.substr(1);
+                scoreBoard.innerText = score;
                 playerHP.innerText = player.HP;
                 playerHP.style.left = player.offsetLeft + player.offsetWidth + "px";
                 playerHP.style.top = player.offsetTop + player.offsetHeight / 2 + "px";
@@ -365,9 +360,7 @@
                     deathBGM.src = "playerdeath.mp3";
                     deathBGM.play();
                     gameEndText.style.display = "block";
-                    gameEndText.style.zIndex = 6;
-                    scoreBoard.style.top = gameEndText.offsetTop + 100 + "px";
-                    scoreBoard.style.left = gameEndText.offsetLeft + "px";
+                    gameEndText.style.zIndex = 4;
                     playerHP.style.display = "none";
 
                     player.HP = 5;
@@ -404,7 +397,6 @@
 
         function menuMove() // 3
         {
-            menuToggle = (menuDisplay[0].menuToggle || menuDisplay[1].menuToggle || menuDisplay[2].menuToggle);
 
             for (var i = 0; i < 3; i++) {
                 if (menuDisplay[i].menuToggle) {
@@ -412,17 +404,12 @@
                 } else {
                     menuDisplay[i].mx = -screen.availWidth / 2;
                 }
-                if (menuDisplay[i].X <= -screen.availWidth / 2 + 1) {
-                    menuDisplay[i].style.display = "none";
-                } else {
-                    menuDisplay[i].style.display = "block";
-                }
 
                 menuDisplay[i].X -= (menuDisplay[i].X - menuDisplay[i].mx) * 0.1 * deltaTime; //에니메이션 제어
                 menuDisplay[i].Y -= (menuDisplay[i].Y - menuDisplay[i].my) * 0.1 * deltaTime;
                 menuDisplay[i].style.left = menuDisplay[i].X + "px";
                 menuDisplay[i].style.top = menuDisplay[i].Y + "px";
-                menuDisplay[i].style.filter = "invert(" + (500 + menuDisplay[i].X) / 10 + "%)";
+                menuDisplay[i].style.opacity = (500 + menuDisplay[i].X) / 1000;
             }
 
             if (menu.menuToggle) {
@@ -435,8 +422,7 @@
             menu.Y -= (menu.Y - menu.my) * 0.1 * deltaTime;
             menu.style.left = menu.X + "px";
             menu.style.top = menu.Y + "px";
-            menu.style.filter = "invert(" + (menu.X) / -500 + ")";
-
+            menu.style.backgroundColor = "rgba(255,255,255," + ((menu.X) + 600) / 1000 + ")";
             updateMoveObject();
         }
 
@@ -468,6 +454,7 @@
                                 var breakBGM = new Audio;
                                 breakBGM.src = "stonebreak.mp3";
                                 breakBGM.play();
+                                score += Math.round(document.querySelectorAll("#asteroid")[j].offsetWidth / pWidth * 10)
                                 document.querySelectorAll("#asteroid")[j].HP -= 1;
                                 document.querySelectorAll("#asteroid")[j].src = "b.png";
                                 document.querySelectorAll("#asteroid")[j].hitTimer = Timer;
