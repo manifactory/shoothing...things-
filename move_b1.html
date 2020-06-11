@@ -39,6 +39,9 @@
             X: 0,
             Y: 0
         };
+        
+        var score = 0;
+        var gameEnd = false;
 
         function pauseMenu() {
             if (gameEnd) {
@@ -62,8 +65,6 @@
                 document.querySelectorAll("menu div")[i].menuToggle = false;
             }
         }
-        var score = 0;
-        var gameEnd = false;
 
         document.addEventListener("keydown", keyDownHandler, false);
         document.addEventListener("keyup", keyUpHandler, false);
@@ -434,6 +435,7 @@
                         var damageBGM = new Audio;
                         damageBGM.src = "playerdamage.mp3";
                         damageBGM.play();
+                        addScore(document.querySelectorAll("#asteroid")[i],500);
                         document.body.removeChild(document.querySelectorAll("#asteroid")[i]);
                         objectNum--;
                         player.HP -= 1;
@@ -447,14 +449,14 @@
                                 var breakBGM = new Audio;
                                 breakBGM.src = "stonebreak.mp3";
                                 breakBGM.play();
-                                score += Math.round(document.querySelectorAll("#asteroid")[j].offsetWidth / pWidth * 1000);
+                                addScore(document.querySelectorAll("#asteroid")[j],1000);
                                 document.body.removeChild(document.querySelectorAll("#asteroid")[j]);
                                 objectNum--;
                             } else {
                                 var breakBGM = new Audio;
                                 breakBGM.src = "stonebreak.mp3";
                                 breakBGM.play();
-                                score += Math.round(document.querySelectorAll("#asteroid")[j].offsetWidth / pWidth * 10)
+                                addScore(document.querySelectorAll("#asteroid")[j],100);
                                 document.querySelectorAll("#asteroid")[j].HP -= 1;
                                 document.querySelectorAll("#asteroid")[j].src = "b.png";
                                 document.querySelectorAll("#asteroid")[j].hitTimer = Timer;
@@ -519,6 +521,10 @@
 
             document.body.appendChild(bullet);
             objectNum++;
+        }
+
+        function addScore(target,multiple){
+            score += Math.round(target.offsetWidth / pWidth * multiple);
         }
     </script>
 </body>
